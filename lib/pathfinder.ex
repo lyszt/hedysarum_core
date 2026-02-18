@@ -18,6 +18,11 @@ defmodule HedysarumCore.Pathfinder do
     GenServer.call(__MODULE__, {:solve, package_name})
   end
 
+  @doc "Look up the version of a package in the knowledge base"
+  def find_version(package_name) do
+    GenServer.call(__MODULE__, {:version, package_name})
+  end
+
   # --- Server Callbacks ---
 
   @impl true
@@ -84,6 +89,22 @@ defmodule HedysarumCore.Pathfinder do
 
       {false, _env, _kb} ->
         {:reply, {:error, :no_solution}, state}
+    end
+  end
+
+  @impl true
+  def handle_call({:version, package}, _from, state) do
+    pkg_atom = if is_binary(package), do: String.to_atom(package), else: package
+    # query: package(pkg_atom, Ver, _, _)
+    query = [:pred, [:package, pkg_atom, {:Ver, 0}, :_, :_]]
+
+    case Prove.prove(query, [], [], state.kb, 1) do
+      {true, env, _} ->
+        version = Prove.deref({:Ver, 0}, env)
+        {:reply, {:ok, version}, state}
+
+      {false, _, _} ->
+        {:reply, {:error, :not_found}, state}
     end
   end
 end

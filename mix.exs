@@ -20,7 +20,9 @@ defmodule HedysarumCore.MixProject do
 
   defp deps do
     [
-      {:elxlog, "~> 0.1.6"}
+      {:elxlog, "~> 0.1.6"},
+      {:jason, "~> 1.4"},
+      {:req, "~> 0.5.17"}
     ]
   end
 end
