@@ -23,8 +23,21 @@ defmodule HedysarumCore.Pathfinder do
   @impl true
   def init(_opts) do
     Logger.info("🔍 Pathfinder (Elxlog Engine) online.")
-    # 'kb' is our knowledge base: a Keyword list of definitions.
-    {:ok, %{kb: [], loaded_files: []}}
+
+    priv_dir = :code.priv_dir(:hedysarum_core) |> to_string()
+    packages_path = Path.join(priv_dir, "packages.pl")
+
+    case File.read(packages_path) do
+      {:ok, content} ->
+        tokens = Read.tokenize(content <> "\n", :filein)
+        kb = Prove.reconsult(tokens, [])
+        Logger.info("Knowledge base auto-loaded: #{packages_path}")
+        {:ok, %{kb: kb, loaded_files: [packages_path]}}
+
+      {:error, _reason} ->
+        Logger.info("No packages.pl found at #{packages_path}; starting with empty KB")
+        {:ok, %{kb: [], loaded_files: []}}
+    end
   end
 
   @impl true
@@ -32,13 +45,13 @@ defmodule HedysarumCore.Pathfinder do
     case File.read(path) do
       {:ok, content} ->
         # 1. Tokenize the file content
-        tokens = Read.tokenize(content, :filein)
+        tokens = Read.tokenize(content <> "\n", :filein)
 
         # 2. Use Prove.reconsult to parse tokens into the definition list
         # Prove.reconsult(tokens, existing_def) returns a new definition list
         new_kb = Prove.reconsult(tokens, state.kb)
 
-        Logger.info("🧠 Knowledge base loaded: #{path}")
+        Logger.info("Knowledge base loaded: #{path}")
         {:reply, :ok, %{state | kb: new_kb, loaded_files: [path | state.loaded_files]}}
 
       {:error, reason} ->
