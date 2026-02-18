@@ -1,4 +1,4 @@
-.PHONY: commit
+.PHONY: commit compile run
 
 commit:
 	@echo "Please enter your commit message:"; \
@@ -11,3 +11,6 @@ commit:
 
 compile:
 	@mix deps.get && mix deps.compile;
+
+run: compile 
+	iex -S mix

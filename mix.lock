@@ -1,0 +1,4 @@
+%{
+  "elxlog": {:hex, :elxlog, "0.1.6", "253c487a2a51cb60fd10dd5e7819df3c8603c9d15c58ee9353dbdf6ddcda0edc", [:mix], [], "hexpm", "837f37f90e4d9e7039682d3ab761abefe5d6c1b48d79f0312ce94fb8c26a6e75"},
+  "erlog": {:git, "https://github.com/rvirding/erlog.git", "10822d013ddbc0ad2d77742d997fb0d2d218cf64", [branch: "master"]},
+}
