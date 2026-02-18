@@ -1,0 +1,10 @@
+defmodule HedysarumCore.Executor do
+  @on_load :load_nifs
+
+  def load_nifs do
+    path = :code.priv_dir(:hedysarum_core) ++ ~c"/hedysarum_executor"
+    :erlang.load_nif(path, 0)
+  end
+
+  def install_package_nif(_pkg), do: :erlang.nif_error(:nif_not_loaded)
+end
