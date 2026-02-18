@@ -8,3 +8,6 @@ commit:
 	else \
 		git add . && git commit -m "$$commit_msg" && git push; \
 	fi
+
+compile:
+	@mix deps.get && mix deps.compile;
