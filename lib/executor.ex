@@ -6,5 +6,5 @@ defmodule HedysarumCore.Executor do
     :erlang.load_nif(path, 0)
   end
 
-  def install_package_nif(_pkg), do: :erlang.nif_error(:nif_not_loaded)
+  def run_install(_pkg), do: :erlang.nif_error(:nif_not_loaded)
 end
