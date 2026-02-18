@@ -193,6 +193,32 @@ defmodule HedysarumCore.Collector do
     % resolve(+Pkg, -Path)
     resolve(Pkg, Path) :-
         install_order(Pkg, 0, [], Path).
+
+    % find_path(+Pkg, -Plan) - smart collection: cycle-safe, skips .so deps
+    find_path(Pkg, Plan) :-
+        resolve(Pkg, [], ReversedPlan),
+        reverse(ReversedPlan, Plan).
+
+    % resolve(+Pkg, +Visited, -ReversedPlan) - builds reversed install order
+    resolve(Pkg, Visited, [Pkg|DepPlanReversed]) :-
+        package(Pkg, _, Deps, _),
+        \+ member(Pkg, Visited),
+        resolve_list(Deps, [Pkg|Visited], DepPlanReversed).
+
+    % resolve_list(+Deps, +Visited, -DepPlanReversed)
+    resolve_list([], _, []).
+    resolve_list([H|T], Visited, Acc) :-
+        (   is_so_file(H)
+        ->  resolve_list(T, Visited, Acc)
+        ;   resolve(H, Visited, PlanH),
+            resolve_list(T, PlanH, PlanT),
+            append(PlanH, PlanT, Acc)
+        ).
+
+    % is_so_file(+Atom) - virtual .so deps are not packages to install
+    is_so_file(Atom) :-
+        atom_chars(Atom, Chars),
+        append(_, ['.', 's', 'o'|_], Chars).
     """
   end
 end

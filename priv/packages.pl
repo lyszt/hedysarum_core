@@ -307,12 +307,37 @@ install_order(Pkg, MinVer, Seen, Result) :-
     install_deps(Deps, MinVers, Seen, Seen1),
     append(Seen1, [Pkg], Result).
 
-% install_deps(+Deps, +MinVers, +Seen, -Result)
-install_deps([], [], Seen, Seen).
+% is_so_file(+Atom) - virtual .so deps are not packages to install
 install_deps([H|T], [V|Vs], Seen, Result) :-
-    install_order(H, V, Seen, Seen1),
-    install_deps(T, Vs, Seen1, Result).
+    (is_so_file(H) -> 
+        install_deps(T, Vs, Seen, Result) % Skip it
+    ; 
+        install_order(H, V, Seen, Seen1),
+        install_deps(T, Vs, Seen1, Result)
+    ).
 
 % resolve(+Pkg, -Path)
 resolve(Pkg, Path) :-
     install_order(Pkg, 0, [], Path).
+
+% find_path(+Pkg, -Plan) - smart collection: cycle-safe, skips .so deps
+find_path(Pkg, Plan) :-
+    resolve(Pkg, [], ReversedPlan),
+    reverse(ReversedPlan, Plan).
+
+% resolve(+Pkg, +Visited, -ReversedPlan) - builds reversed install order
+resolve(Pkg, Visited, [Pkg|DepPlanReversed]) :-
+    package(Pkg, _, Deps, _),
+    \+ member(Pkg, Visited),
+    resolve_list(Deps, [Pkg|Visited], DepPlanReversed).
+
+% resolve_list(+Deps, +Visited, -DepPlanReversed)
+resolve_list([], _, []).
+resolve_list([H|T], Visited, Acc) :-
+    (   is_so_file(H)
+    ->  resolve_list(T, Visited, Acc)
+    ;   resolve(H, Visited, PlanH),
+        resolve_list(T, PlanH, PlanT),
+        append(PlanH, PlanT, Acc)
+    ).  
+
